@@ -1,0 +1,268 @@
+{% extends 'layout.html' %}
+
+{% block title %}Your Trip{% endblock %}
+
+{% block content %}
+
+<div id="app" class="clearfix">
+  <div class="map-container col-sm-8 col-lg-9">
+    <div>
+      <div id="map-canvas"></div>
+    </div>
+  </div>
+  <div id="control-panel" class="col-sm-4 col-lg-3 clearfix">
+    <div class="col-xs-6 col-sm-12">
+      <div class="panel panel-default">
+        <div class="panel-body" id="options-panel">
+          <div>
+            <h4>Hotels</h4>
+            <select data-type="hotel" id="hotel-choices">
+            </select>
+            <button data-action="add" class="btn btn-primary btn-circle pull-right">+</button>
+          </div>
+          <div>
+            <h4>Restaurants</h4>
+            <select data-type="restaurant" id="restaurant-choices">
+            </select>
+            <button data-action="add" class="btn btn-primary btn-circle pull-right">+</button>
+          </div>
+          <div>
+            <h4>Activities</h4>
+            <select data-type="activity" id="activity-choices">
+            </select>
+            <button data-action="add" class="btn btn-primary btn-circle pull-right">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xs-6 col-sm-12">
+      <h3>
+        <span id="day-title">
+          <span>Day 2</span>
+          <button class="btn btn-xs btn-danger remove btn-circle">x</button>
+        </span>
+      </h3>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="day-buttons">
+            <button class="btn btn-circle day-btn">1</button>
+            <button class="btn btn-circle day-btn current-day">2</button>
+            <button class="btn btn-circle day-btn">3</button>
+            <button class="btn btn-circle day-btn" id="day-add">+</button>
+          </div>
+        </div>
+        <div class="panel-body" id="itinerary">
+          <div>
+            <h4>My Hotel</h4>
+            <ul class="list-group" id='my-hotel-list'>
+              <!-- <div class="itinerary-item">
+                <span class="title">Andaz Wall Street</span>
+                <button class="btn btn-xs btn-danger remove btn-circle">x</button>
+              </div> -->
+            </ul>
+          </div>
+          <div>
+            <h4>My Restaurants</h4>
+            <ul class="list-group" id='my-restaurant-list'>
+              <div class="itinerary-item">
+                <!-- <span class="title">Bouley</span>
+                <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
+              </div>
+            </ul>
+          </div>
+          <div>
+            <h4>My Activities</h4>
+            <ul class="list-group" id='my-activity-list'>
+              <div class="itinerary-item">
+                <!-- <span class="title">Mahayana Buddhist Temple Association</span>
+                <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
+              </div>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // var mapCanvas = document.getElementById('map-canvas');
+  // var fullstackAcademy = new google.maps.LatLng(40.705086, -74.009151);
+  // var styleArr = [{
+  //   featureType: 'landscape',
+  //   stylers: [{ saturation: -100 }, { lightness: 60 }]
+  // }, {
+  //   featureType: 'road.local',
+  //   stylers: [{ saturation: -100 }, { lightness: 40 }, { visibility: 'on' }]
+  // }, {
+  //   featureType: 'transit',
+  //   stylers: [{ saturation: -100 }, { visibility: 'simplified' }]
+  // }, {
+  //   featureType: 'administrative.province',
+  //   stylers: [{ visibility: 'off' }]
+  // }, {
+  //   featureType: 'water',
+  //   stylers: [{ visibility: 'on' }, { lightness: 30 }]
+  // }, {
+  //   featureType: 'road.highway',
+  //   elementType: 'geometry.fill',
+  //   stylers: [{ color: '#ef8c25' }, { lightness: 40 }]
+  // }, {
+  //   featureType: 'road.highway',
+  //   elementType: 'geometry.stroke',
+  //   stylers: [{ visibility: 'off' }]
+  // }, {
+  //   featureType: 'poi.park',
+  //   elementType: 'geometry.fill',
+  //   stylers: [{ color: '#b6c54c' }, { lightness: 40 }, { saturation: -40 }]
+  // }];
+
+  // var mapCanvas = document.getElementById('map-canvas');
+
+  function Day() {
+    this.hotels = [];
+    this.restaurants = [];
+    this.activities = [];
+
+    // this.dailyMap = new google.maps.Map (mapCanvas)
+
+  }
+
+  let currentDay = 0;
+  let dayArray = [ new Day() ];
+
+  var hotels = {{ hotels | dump | safe }};
+  var restaurants = {{ restaurants | dump | safe }};
+  var activities = {{ activities | dump | safe }};
+  // console.log(hotels);
+  let $hotel = $('#hotel-choices');
+  let $restaurant = $('#restaurant-choices');
+  let $activity = $('#activity-choices');
+
+  hotels.forEach( (ele) => {
+    // console.log(ele);
+    $('#hotel-choices').append('<option>' + ele.name +'</options>');
+  });
+  restaurants.forEach( (ele) => {
+    $('#restaurant-choices').append('<option>' + ele.name +'</options>');
+  });
+  activities.forEach( (ele) => {
+    $('#activity-choices').append('<option>' + ele.name +'</options>');
+  });
+
+
+  $('#hotel-choices+button').on('click', () => {
+    let idTag = $hotel.val().replace(/\s+/g, '-');
+
+    dayArray[currentDay]['hotels'].push( $hotel.val() );
+    $('#my-hotel-list').append(`
+      <div class="itinerary-item">
+        <span class="title" id="${idTag}" > ${$hotel.val()}</span>
+        <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
+      </div>`);
+
+    let index = hotels.findIndex( (ele) => {
+      return ele.name === $hotel.val();
+    });
+
+    let locArr = hotels[index].place.location;
+
+    drawMarker('hotel', locArr);
+
+    $(`#${idTag}-button`).on('click', function () {
+      // debugger;
+      let $this = $(this);
+
+      let searchId = $this[0].id.slice(0, -7);
+
+      let currentRest = dayArray[currentDay].hotels;
+      let index = currentRest.findIndex( (ele) => {
+        return ele === searchId.split('-').join(' ');
+      });
+
+      dayArray[currentDay].hotels.splice(index, 1);
+      drawMarker('hotel', locArr, true);
+
+      $this.parent().remove();
+    });
+
+  });
+
+  $('#restaurant-choices+button').on('click', () => {
+    let idTag = $restaurant.val().replace(/\s+/g, '-');
+
+    dayArray[currentDay]['restaurants'].push( $restaurant.val() );
+    $('#my-restaurant-list').append(`
+      <div class="itinerary-item">
+        <span class="title" id="${idTag}" > ${$restaurant.val()}</span>
+        <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
+      </div>`);
+
+    let index = restaurants.findIndex( (ele) => {
+      return ele.name === $restaurant.val();
+    });
+
+    let locArr = restaurants[index].place.location;
+
+    drawMarker('restaurant', locArr);
+
+    $(`#${idTag}-button`).on('click', function () {
+      // debugger;
+      let $this = $(this);
+
+      let searchId = $this[0].id.slice(0, -7);
+
+      let currentRest = dayArray[currentDay].restaurants;
+      let index = currentRest.findIndex( (ele) => {
+        return ele === searchId.split('-').join(' ');
+      });
+
+      dayArray[currentDay].restaurants.splice(index, 1);
+      drawMarker('restaurant', locArr, true);
+
+      $this.parent().remove();
+    });
+  });
+
+
+
+  $('#activity-choices+button').on('click', () => {
+    let idTag = $activity.val().replace(/\s+/g, '-');
+
+    dayArray[currentDay]['activities'].push( $activity.val() );
+    $('#my-activity-list').append(`
+      <div class="itinerary-item">
+        <span class="title" id="${idTag}" > ${$activity.val()}</span>
+        <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
+      </div>`);
+
+    let index = activities.findIndex( (ele) => {
+      return ele.name === $activity.val();
+    });
+
+    let locArr = activities[index].place.location;
+
+    drawMarker('activity', locArr);
+
+    $(`#${idTag}-button`).on('click', function () {
+      // debugger;
+      let $this = $(this);
+
+      let searchId = $this[0].id.slice(0, -7);
+
+      let currentRest = dayArray[currentDay].activities;
+      let index = currentRest.findIndex( (ele) => {
+        return ele === searchId.split('-').join(' ');
+      });
+
+      dayArray[currentDay].activities.splice(index, 1);
+      drawMarker('restaurant', locArr, true);
+
+      $this.parent().remove();
+    });
+
+  });
+
+
+</script>
+{% endblock %}

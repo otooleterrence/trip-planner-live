@@ -38,23 +38,21 @@
     <div class="col-xs-6 col-sm-12">
       <h3>
         <span id="day-title">
-          <span>Day 2</span>
+          <span>Day 1</span>
           <button class="btn btn-xs btn-danger remove btn-circle">x</button>
         </span>
       </h3>
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="day-buttons">
-            <button class="btn btn-circle day-btn">1</button>
-            <button class="btn btn-circle day-btn current-day">2</button>
-            <button class="btn btn-circle day-btn">3</button>
+            <button class="btn btn-circle day-btn current-day last-day" id='day-1'>1</button>
             <button class="btn btn-circle day-btn" id="day-add">+</button>
           </div>
         </div>
         <div class="panel-body" id="itinerary">
           <div>
             <h4>My Hotel</h4>
-            <ul class="list-group" id='my-hotel-list'>
+            <ul class="list-group" id='my-hotels-list'>
               <!-- <div class="itinerary-item">
                 <span class="title">Andaz Wall Street</span>
                 <button class="btn btn-xs btn-danger remove btn-circle">x</button>
@@ -63,7 +61,7 @@
           </div>
           <div>
             <h4>My Restaurants</h4>
-            <ul class="list-group" id='my-restaurant-list'>
+            <ul class="list-group" id='my-restaurants-list'>
               <div class="itinerary-item">
                 <!-- <span class="title">Bouley</span>
                 <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
@@ -72,7 +70,7 @@
           </div>
           <div>
             <h4>My Activities</h4>
-            <ul class="list-group" id='my-activity-list'>
+            <ul class="list-group" id='my-activities-list'>
               <div class="itinerary-item">
                 <!-- <span class="title">Mahayana Buddhist Temple Association</span>
                 <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
@@ -86,46 +84,14 @@
 </div>
 
 <script>
-  // var mapCanvas = document.getElementById('map-canvas');
-  // var fullstackAcademy = new google.maps.LatLng(40.705086, -74.009151);
-  // var styleArr = [{
-  //   featureType: 'landscape',
-  //   stylers: [{ saturation: -100 }, { lightness: 60 }]
-  // }, {
-  //   featureType: 'road.local',
-  //   stylers: [{ saturation: -100 }, { lightness: 40 }, { visibility: 'on' }]
-  // }, {
-  //   featureType: 'transit',
-  //   stylers: [{ saturation: -100 }, { visibility: 'simplified' }]
-  // }, {
-  //   featureType: 'administrative.province',
-  //   stylers: [{ visibility: 'off' }]
-  // }, {
-  //   featureType: 'water',
-  //   stylers: [{ visibility: 'on' }, { lightness: 30 }]
-  // }, {
-  //   featureType: 'road.highway',
-  //   elementType: 'geometry.fill',
-  //   stylers: [{ color: '#ef8c25' }, { lightness: 40 }]
-  // }, {
-  //   featureType: 'road.highway',
-  //   elementType: 'geometry.stroke',
-  //   stylers: [{ visibility: 'off' }]
-  // }, {
-  //   featureType: 'poi.park',
-  //   elementType: 'geometry.fill',
-  //   stylers: [{ color: '#b6c54c' }, { lightness: 40 }, { saturation: -40 }]
-  // }];
 
-  // var mapCanvas = document.getElementById('map-canvas');
+  let ourWindow = this;
+  console.log(ourWindow);
 
   function Day() {
     this.hotels = [];
     this.restaurants = [];
     this.activities = [];
-
-    // this.dailyMap = new google.maps.Map (mapCanvas)
-
   }
 
   let currentDay = 0;
@@ -141,128 +107,165 @@
 
   hotels.forEach( (ele) => {
     // console.log(ele);
-    $('#hotel-choices').append('<option>' + ele.name +'</options>');
+    $hotel.append('<option>' + ele.name +'</options>');
   });
+
   restaurants.forEach( (ele) => {
-    $('#restaurant-choices').append('<option>' + ele.name +'</options>');
+    $restaurant.append('<option>' + ele.name +'</options>');
   });
+
   activities.forEach( (ele) => {
-    $('#activity-choices').append('<option>' + ele.name +'</options>');
+    $activity.append('<option>' + ele.name +'</options>');
   });
 
-
+  
+  
   $('#hotel-choices+button').on('click', () => {
-    let idTag = $hotel.val().replace(/\s+/g, '-');
-
-    dayArray[currentDay]['hotels'].push( $hotel.val() );
-    $('#my-hotel-list').append(`
-      <div class="itinerary-item">
-        <span class="title" id="${idTag}" > ${$hotel.val()}</span>
-        <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
-      </div>`);
-
-    let index = hotels.findIndex( (ele) => {
-      return ele.name === $hotel.val();
-    });
-
-    let locArr = hotels[index].place.location;
-
-    drawMarker('hotel', locArr);
-
-    $(`#${idTag}-button`).on('click', function () {
-      // debugger;
-      let $this = $(this);
-
-      let searchId = $this[0].id.slice(0, -7);
-
-      let currentRest = dayArray[currentDay].hotels;
-      let index = currentRest.findIndex( (ele) => {
-        return ele === searchId.split('-').join(' ');
-      });
-
-      dayArray[currentDay].hotels.splice(index, 1);
-      drawMarker('hotel', locArr, true);
-
-      $this.parent().remove();
-    });
-
+    createItineraryItem($hotel.val(), 'hotels');
   });
 
   $('#restaurant-choices+button').on('click', () => {
-    let idTag = $restaurant.val().replace(/\s+/g, '-');
-
-    dayArray[currentDay]['restaurants'].push( $restaurant.val() );
-    $('#my-restaurant-list').append(`
-      <div class="itinerary-item">
-        <span class="title" id="${idTag}" > ${$restaurant.val()}</span>
-        <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
-      </div>`);
-
-    let index = restaurants.findIndex( (ele) => {
-      return ele.name === $restaurant.val();
-    });
-
-    let locArr = restaurants[index].place.location;
-
-    drawMarker('restaurant', locArr);
-
-    $(`#${idTag}-button`).on('click', function () {
-      // debugger;
-      let $this = $(this);
-
-      let searchId = $this[0].id.slice(0, -7);
-
-      let currentRest = dayArray[currentDay].restaurants;
-      let index = currentRest.findIndex( (ele) => {
-        return ele === searchId.split('-').join(' ');
-      });
-
-      dayArray[currentDay].restaurants.splice(index, 1);
-      drawMarker('restaurant', locArr, true);
-
-      $this.parent().remove();
-    });
+    createItineraryItem($restaurant.val(), 'restaurants');
   });
-
-
 
   $('#activity-choices+button').on('click', () => {
-    let idTag = $activity.val().replace(/\s+/g, '-');
+    createItineraryItem($activity.val(), 'activities');
+  });
 
-    dayArray[currentDay]['activities'].push( $activity.val() );
-    $('#my-activity-list').append(`
+// Removes special characters from name before creating tag
+function makeTag(string) {
+  return string.replace(/[\s&,\-()\*%$#@!~`]+/g, '');
+}
+
+// Adds an item to the itinerary from that database matching the name and type
+function addToCurrentDay(name, type) {
+    let idTag = makeTag(name);
+    dayArray[currentDay][type].push(name);
+    $(`#my-${type}-list`).append(`
       <div class="itinerary-item">
-        <span class="title" id="${idTag}" > ${$activity.val()}</span>
+        <span class="title" id="${idTag}" >${name}</span>
         <button class="btn btn-xs btn-danger remove btn-circle" id="${idTag}-button">x</button>
       </div>`);
+}
 
-    let index = activities.findIndex( (ele) => {
-      return ele.name === $activity.val();
+
+// Place marker on the map based on name and type
+// Returns that marker
+function placeMarker(name, type) {
+
+    let array = [];
+    let typeName = '';
+
+    if(type === 'hotels') {
+      array = hotels;
+      typeName = 'hotel';
+    }
+
+    if(type === 'restaurants') {
+      array = restaurants;
+      typeName = 'restaurant';
+    }
+
+    if(type === 'activities') {
+      array = activities;
+      typeName = 'activitiy';
+    }
+
+    let index = array.findIndex( (ele) => {
+      return ele.name === name
     });
 
-    let locArr = activities[index].place.location;
+    let locArr = array[index].place.location;
+    return drawMarker(typeName, locArr);
 
-    drawMarker('activity', locArr);
+  }
 
+  // Adds remove button to itinerary item and sets 'click' event listener
+  function addRemoveButton(name, type, marker) {
+    let idTag = makeTag(name);
+  
     $(`#${idTag}-button`).on('click', function () {
       // debugger;
       let $this = $(this);
 
       let searchId = $this[0].id.slice(0, -7);
 
-      let currentRest = dayArray[currentDay].activities;
-      let index = currentRest.findIndex( (ele) => {
+      let currentType = dayArray[currentDay][type];
+      let index = currentType.findIndex( (ele) => {
         return ele === searchId.split('-').join(' ');
       });
 
-      dayArray[currentDay].activities.splice(index, 1);
-      drawMarker('restaurant', locArr, true);
-
+      dayArray[currentDay][type].splice(index, 1);
+      marker.setMap(null);
       $this.parent().remove();
     });
+  }
+
+  $('#day-add').on('click', () => {
+    addDay();
+  });
+
+  function addDay() {
+    $('.last-day').after(`<button class="btn btn-circle day-btn last-day" id='day-${dayArray.length + 1}'>${dayArray.length + 1}</button>`);
+    $('.last-day').first().removeClass('last-day');
+    dayArray.push(new Day());
+  }
+
+  function removeDay() {
+    dayArray.splice(currentDay, 1);
+    $(`#day-${currentDay + 1}`).remove();
+
+    if(currentDay === 0 && dayArray.length > 0) {
+      currentDay++;
+    } else if (currentDay === 0 && dayArray.length === 0) {
+      addDay();
+    } else {
+      currentDay--;
+    }
+  }
+
+  function switchDay() {
+
+  }
+
+  $('#day-title button').on('click', () => {
+    removeDay();
+  });
+
+  $('#day-buttons').on('click', 'button', () => {
+
+    // Button stuff
+    $this = $(this);
+    currentDay = parseInt($this.text) - 1;
+    $('.current-day').removeClass('current-day');
+    $this.addClass('current-day');
+
+    // Panel / Day stuff
+
 
   });
 
+  function createItineraryItem(name, type) {
+      addToCurrentDay(name, type);
+      let marker = placeMarker(name, type);
+      addRemoveButton(name, type, marker);
+  }
 
+  function setupDay() {
+
+      dayArray[currentDay].hotels.forEach((hotelName) => {
+        createItineraryItem(hotelName, 'hotels');
+      });
+
+      dayArray[currentDay].restaurants.forEach((restuarantName) => {
+        createItineraryItem(restaurantName, 'restaurants');
+      });
+
+      dayArray[currentDay].activities.forEach((activityName) => {
+        createItineraryItem(activityName, 'activities');
+      });
+    }
+
+    setupDay();
 </script>
 {% endblock %}

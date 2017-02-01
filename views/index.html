@@ -45,7 +45,7 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="day-buttons">
-            <button class="btn btn-circle day-btn current-day last-day" id='day-1'>1</button>
+            <button class="btn btn-circle day-btn current-day last-day not-add" type='day-button' id='day-1'>1</button>
             <button class="btn btn-circle day-btn" id="day-add">+</button>
           </div>
         </div>
@@ -53,18 +53,14 @@
           <div>
             <h4>My Hotel</h4>
             <ul class="list-group" id='my-hotels-list'>
-              <!-- <div class="itinerary-item">
-                <span class="title">Andaz Wall Street</span>
-                <button class="btn btn-xs btn-danger remove btn-circle">x</button>
-              </div> -->
+              <div class="itinerary-item">
+              </div>
             </ul>
           </div>
           <div>
             <h4>My Restaurants</h4>
             <ul class="list-group" id='my-restaurants-list'>
               <div class="itinerary-item">
-                <!-- <span class="title">Bouley</span>
-                <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
               </div>
             </ul>
           </div>
@@ -72,8 +68,6 @@
             <h4>My Activities</h4>
             <ul class="list-group" id='my-activities-list'>
               <div class="itinerary-item">
-                <!-- <span class="title">Mahayana Buddhist Temple Association</span>
-                <button class="btn btn-xs btn-danger remove btn-circle">x</button> -->
               </div>
             </ul>
           </div>
@@ -206,12 +200,14 @@ function placeMarker(name, type) {
   });
 
   function addDay() {
-    $('.last-day').after(`<button class="btn btn-circle day-btn last-day" id='day-${dayArray.length + 1}'>${dayArray.length + 1}</button>`);
+    $('.last-day').after(`<button class="btn btn-circle day-btn last-day" type='day-button' id='day-${dayArray.length + 1}'>${dayArray.length + 1}</button>`);
     $('.last-day').first().removeClass('last-day');
     dayArray.push(new Day());
   }
 
   function removeDay() {
+
+    clearDay();
     dayArray.splice(currentDay, 1);
     $(`#day-${currentDay + 1}`).remove();
 
@@ -224,24 +220,22 @@ function placeMarker(name, type) {
     }
   }
 
-  function switchDay() {
-
-  }
 
   $('#day-title button').on('click', () => {
     removeDay();
   });
 
-  $('#day-buttons').on('click', 'button', () => {
+  $('.day-buttons').on('click', '[type="day-button"]', (event) => {
+    clearDay();
 
     // Button stuff
-    $this = $(this);
-    currentDay = parseInt($this.text) - 1;
+    $buttonClicked = $(event.target);
+    currentDay = parseInt($buttonClicked.text()) - 1;
     $('.current-day').removeClass('current-day');
-    $this.addClass('current-day');
+    $buttonClicked.addClass('current-day');
 
     // Panel / Day stuff
-
+    setupDay();
 
   });
 
@@ -251,13 +245,18 @@ function placeMarker(name, type) {
       addRemoveButton(name, type, marker);
   }
 
-  function setupDay() {
+  function clearDay() {
+    $('.itinerary-item').remove();
+  }
 
+
+  function setupDay() {
+    
       dayArray[currentDay].hotels.forEach((hotelName) => {
         createItineraryItem(hotelName, 'hotels');
       });
 
-      dayArray[currentDay].restaurants.forEach((restuarantName) => {
+      dayArray[currentDay].restaurants.forEach((restaurantName) => {
         createItineraryItem(restaurantName, 'restaurants');
       });
 
@@ -266,6 +265,5 @@ function placeMarker(name, type) {
       });
     }
 
-    setupDay();
 </script>
 {% endblock %}
